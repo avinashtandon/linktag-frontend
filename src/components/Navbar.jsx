@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -8,13 +9,13 @@ export default function Navbar() {
                     <h2>🔖 LinkTag</h2>
                 </div>
                 <ul className="navbar-menu">
-                    <li><a href="/">Home</a></li>
-                    <li><a href="/tags">Tags</a></li>
-                    <li><a href="/search">Search</a></li>
-                    <li><a href="/about">About</a></li>
+                    <li><Link to="/">Home</Link></li>
+                    <li><Link to="/tags">Tags</Link></li>
+                    <li><Link to="/search">Search</Link></li>
+                    <li><Link to="/about">About</Link></li>
                 </ul>
                 <div className="navbar-actions">
-                    <button className="btn-login">Login</button>
+                    <Link to="/login"><button className="btn-login">Login</button></Link>
                     <button className="btn-signup">Sign Up</button>
                 </div>
             </div>
