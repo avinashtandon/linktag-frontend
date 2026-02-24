@@ -1,59 +1,17 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useLinkTags } from '../hooks/useLinkTags'
 import './MyLinktags.css'
-
-const API_BASE = '/api/v1'
 
 function MyLinktags() {
     const navigate = useNavigate()
-    const [linktags, setLinktags] = useState([])
-    const [total, setTotal] = useState(0)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
+    const { linktags, total, loading, loadingMore, error, hasMore, fetchPage, loadMore } = useLinkTags()
 
     useEffect(() => {
         const token = localStorage.getItem('access_token')
-        if (!token) {
-            navigate('/login')
-            return
-        }
-
-        const fetchLinktags = async () => {
-            try {
-                const response = await fetch(`${API_BASE}/linktags/`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
-                })
-
-                let data = {}
-                const text = await response.text()
-                try {
-                    if (text) data = JSON.parse(text)
-                } catch {
-                    data = { message: text }
-                }
-
-                if (!response.ok) {
-                    const errObj = data.error || data
-                    let errMsg = `Error ${response.status}: Failed to load LinkTags.`
-                    if (typeof errObj === 'string') errMsg = errObj
-                    else if (errObj?.message) errMsg = typeof errObj.message === 'string' ? errObj.message : JSON.stringify(errObj.message)
-                    setError(errMsg)
-                    return
-                }
-
-                setLinktags(data.data?.linktags || [])
-                setTotal(data.data?.total || 0)
-            } catch (err) {
-                setError(`Network error: ${err.message}`)
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchLinktags()
-    }, [navigate])
+        if (!token) { navigate('/login'); return }
+        fetchPage()
+    }, [fetchPage, navigate])
 
     return (
         <div className="mylinktags-page">
@@ -77,9 +35,7 @@ function MyLinktags() {
                     </div>
                 )}
 
-                {error && (
-                    <div className="state-box error">{error}</div>
-                )}
+                {error && <div className="state-box error">{error}</div>}
 
                 {!loading && !error && linktags.length === 0 && (
                     <div className="state-box empty">
@@ -89,31 +45,42 @@ function MyLinktags() {
                 )}
 
                 {!loading && !error && linktags.length > 0 && (
-                    <div className="linktag-grid">
-                        {linktags.map((lt) => (
-                            <div className="linktag-card" key={lt.id}>
-                                <div className="linktag-card-top">
-                                    <span className="tag-badge">#{lt.tag}</span>
-                                    <span className="linktag-date">
-                                        {new Date(lt.created_at).toLocaleDateString('en-GB', {
-                                            day: 'numeric', month: 'short', year: 'numeric'
-                                        })}
-                                    </span>
+                    <>
+                        <div className="linktag-grid">
+                            {linktags.map((lt) => (
+                                <div className="linktag-card" key={lt.id}>
+                                    <div className="linktag-card-top">
+                                        <span className="tag-badge">#{lt.tag}</span>
+                                        <span className="linktag-date">
+                                            {new Date(lt.created_at).toLocaleDateString('en-GB', {
+                                                day: 'numeric', month: 'short', year: 'numeric'
+                                            })}
+                                        </span>
+                                    </div>
+                                    <a className="linktag-url" href={lt.url} target="_blank" rel="noreferrer">
+                                        {lt.url}
+                                    </a>
+                                    {lt.description && <p className="linktag-desc">{lt.description}</p>}
                                 </div>
-                                <a
-                                    className="linktag-url"
-                                    href={lt.url}
-                                    target="_blank"
-                                    rel="noreferrer"
+                            ))}
+                        </div>
+
+                        <div className="pagination-footer">
+                            {hasMore ? (
+                                <button
+                                    className="btn-load-more"
+                                    onClick={loadMore}
+                                    disabled={loadingMore}
                                 >
-                                    {lt.url}
-                                </a>
-                                {lt.description && (
-                                    <p className="linktag-desc">{lt.description}</p>
-                                )}
-                            </div>
-                        ))}
-                    </div>
+                                    {loadingMore ? (
+                                        <><span className="btn-spinner" /> Loading…</>
+                                    ) : 'Load More'}
+                                </button>
+                            ) : (
+                                <p className="end-label">You've reached the end ✓</p>
+                            )}
+                        </div>
+                    </>
                 )}
             </div>
         </div>

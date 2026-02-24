@@ -2,61 +2,28 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './HomePage.css';
 import '../pages/MyLinktags.css';
-
-const API_BASE = '/api/v1'
+import { useLinkTags } from '../hooks/useLinkTags';
 
 export default function HomePage() {
     const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('access_token'))
-    const [linktags, setLinktags] = useState([])
-    const [total, setTotal] = useState(0)
-    const [loading, setLoading] = useState(!!localStorage.getItem('access_token'))
-    const [error, setError] = useState('')
+    const { linktags, total, loading, loadingMore, error, hasMore, fetchPage, loadMore, reset } = useLinkTags()
 
     // React to login/logout without page refresh
     useEffect(() => {
         const sync = () => {
             const loggedIn = !!localStorage.getItem('access_token')
             setIsLoggedIn(loggedIn)
-            if (!loggedIn) {
-                setLinktags([])
-                setTotal(0)
-                setLoading(false)
-                setError('')
-            }
+            if (!loggedIn) reset()
         }
         window.addEventListener('storage', sync)
         const id = setInterval(sync, 500)
         return () => { window.removeEventListener('storage', sync); clearInterval(id) }
-    }, [])
+    }, [reset])
 
+    // Fetch first page when user logs in
     useEffect(() => {
-        if (!isLoggedIn) return
-
-        const fetchLinktags = async () => {
-            try {
-                const response = await fetch(`${API_BASE}/linktags/`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` },
-                })
-                let data = {}
-                const text = await response.text()
-                try { if (text) data = JSON.parse(text) } catch { data = { message: text } }
-
-                if (!response.ok) {
-                    const errObj = data.error || data
-                    setError(typeof errObj?.message === 'string' ? errObj.message : `Error ${response.status}`)
-                    return
-                }
-                setLinktags(data.data?.linktags || [])
-                setTotal(data.data?.total || 0)
-            } catch (err) {
-                setError(`Network error: ${err.message}`)
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchLinktags()
-    }, [isLoggedIn])
+        if (isLoggedIn) fetchPage()
+    }, [isLoggedIn, fetchPage])
 
     /* ── Logged-in dashboard ── */
     if (isLoggedIn) {
@@ -92,24 +59,42 @@ export default function HomePage() {
                     )}
 
                     {!loading && !error && linktags.length > 0 && (
-                        <div className="linktag-grid">
-                            {linktags.map((lt) => (
-                                <div className="linktag-card" key={lt.id}>
-                                    <div className="linktag-card-top">
-                                        <span className="tag-badge">#{lt.tag}</span>
-                                        <span className="linktag-date">
-                                            {new Date(lt.created_at).toLocaleDateString('en-GB', {
-                                                day: 'numeric', month: 'short', year: 'numeric'
-                                            })}
-                                        </span>
+                        <>
+                            <div className="linktag-grid">
+                                {linktags.map((lt) => (
+                                    <div className="linktag-card" key={lt.id}>
+                                        <div className="linktag-card-top">
+                                            <span className="tag-badge">#{lt.tag}</span>
+                                            <span className="linktag-date">
+                                                {new Date(lt.created_at).toLocaleDateString('en-GB', {
+                                                    day: 'numeric', month: 'short', year: 'numeric'
+                                                })}
+                                            </span>
+                                        </div>
+                                        <a className="linktag-url" href={lt.url} target="_blank" rel="noreferrer">
+                                            {lt.url}
+                                        </a>
+                                        {lt.description && <p className="linktag-desc">{lt.description}</p>}
                                     </div>
-                                    <a className="linktag-url" href={lt.url} target="_blank" rel="noreferrer">
-                                        {lt.url}
-                                    </a>
-                                    {lt.description && <p className="linktag-desc">{lt.description}</p>}
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+
+                            <div className="pagination-footer">
+                                {hasMore ? (
+                                    <button
+                                        className="btn-load-more"
+                                        onClick={loadMore}
+                                        disabled={loadingMore}
+                                    >
+                                        {loadingMore ? (
+                                            <><span className="btn-spinner" /> Loading…</>
+                                        ) : 'Load More'}
+                                    </button>
+                                ) : (
+                                    <p className="end-label">You've reached the end ✓</p>
+                                )}
+                            </div>
+                        </>
                     )}
                 </div>
             </div>
@@ -148,4 +133,3 @@ export default function HomePage() {
         </main>
     );
 }
-
