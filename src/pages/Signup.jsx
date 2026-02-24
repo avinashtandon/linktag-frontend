@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import './Login.css'
+import './Signup.css'
 
 const API_BASE = '/api/v1'
 
-function Login() {
+function Signup() {
     const navigate = useNavigate()
     const [formData, setFormData] = useState({ email: '', password: '' })
     const [error, setError] = useState('')
@@ -21,7 +21,7 @@ function Login() {
         setError('')
 
         try {
-            const response = await fetch(`${API_BASE}/auth/login`, {
+            const response = await fetch(`${API_BASE}/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -30,6 +30,7 @@ function Login() {
                 }),
             })
 
+            // Safely parse body — backend may return empty or non-JSON on some errors
             let data = {}
             const text = await response.text()
             try {
@@ -38,11 +39,12 @@ function Login() {
                 data = { message: text }
             }
 
-            console.log('Login response:', response.status, data)
+            console.log('Signup response:', response.status, data)
 
             if (!response.ok) {
+                // Backend returns { success: false, error: { message, code, ... } }
                 const errObj = data.error || data
-                let errMsg = `Error ${response.status}: Login failed.`
+                let errMsg = `Error ${response.status}: Signup failed.`
                 if (typeof errObj === 'string') {
                     errMsg = errObj
                 } else if (errObj?.message) {
@@ -58,16 +60,10 @@ function Login() {
                 return
             }
 
-            // Store tokens
-            const { access_token, refresh_token, expires_in } = data.data
-            localStorage.setItem('access_token', access_token)
-            localStorage.setItem('refresh_token', refresh_token)
-            localStorage.setItem('token_expires_at', Date.now() + expires_in * 1000)
-
-            // Redirect to home
-            navigate('/')
+            // Success — redirect to login
+            navigate('/login')
         } catch (err) {
-            console.error('Login fetch error:', err)
+            console.error('Signup fetch error:', err)
             setError(`Network error: ${err.message}`)
         } finally {
             setLoading(false)
@@ -75,14 +71,14 @@ function Login() {
     }
 
     return (
-        <div className="login-page">
-            <div className="login-card">
-                <div className="login-header">
-                    <h1>🔖 Welcome Back</h1>
-                    <p>Log in to your LinkTag account</p>
+        <div className="signup-page">
+            <div className="signup-card">
+                <div className="signup-header">
+                    <h1>🔖 Create Account</h1>
+                    <p>Join LinkTag to start organising your links</p>
                 </div>
 
-                <form className="login-form" onSubmit={handleSubmit}>
+                <form className="signup-form" onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label htmlFor="email">Email Address</label>
                         <input
@@ -105,9 +101,9 @@ function Login() {
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
-                            placeholder="••••••••"
+                            placeholder="SecurePass123!"
                             required
-                            autoComplete="current-password"
+                            autoComplete="new-password"
                         />
                     </div>
 
@@ -118,17 +114,17 @@ function Login() {
                         className="btn-submit"
                         disabled={loading}
                     >
-                        {loading ? 'Logging in…' : 'Log In'}
+                        {loading ? 'Creating Account…' : 'Sign Up'}
                     </button>
                 </form>
 
-                <p className="signup-link">
-                    Don't have an account?{' '}
-                    <Link to="/signup">Sign up</Link>
+                <p className="login-link">
+                    Already have an account?{' '}
+                    <Link to="/login">Log in</Link>
                 </p>
             </div>
         </div>
     )
 }
 
-export default Login
+export default Signup

@@ -1,0 +1,134 @@
+.create-page {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 2rem;
+}
+
+.create-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+}
+
+.create-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.create-header h1 {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 0.5rem;
+}
+
+.create-header p {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.create-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.form-group label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.form-group input {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+
+.form-group input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.form-group input:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.form-error {
+    background: rgba(231, 76, 60, 0.15);
+    border: 1px solid rgba(231, 76, 60, 0.4);
+    color: #e74c3c;
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.form-success {
+    background: rgba(39, 174, 96, 0.15);
+    border: 1px solid rgba(39, 174, 96, 0.4);
+    color: #2ecc71;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    word-break: break-all;
+}
+
+.form-success a {
+    color: #3498db;
+    text-decoration: underline;
+}
+
+.tag-badge {
+    display: inline-block;
+    background: rgba(52, 152, 219, 0.2);
+    color: #3498db;
+    border-radius: 4px;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.btn-submit {
+    margin-top: 0.25rem;
+    padding: 0.85rem;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+}
+
+.btn-submit:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.45);
+}
+
+.btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
