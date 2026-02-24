@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react'
+import { clearTokens, isTokenExpired } from '../utils/auth'
 
 const API_BASE = '/api/v1'
 const PAGE_SIZE = 20
 
 export function useLinkTags() {
     const [linktags, setLinktags] = useState([])
-    const [nextCursor, setNextCursor] = useState(null) // null = not fetched yet, '' = end
+    const [nextCursor, setNextCursor] = useState(null)
     const [total, setTotal] = useState(0)
     const [loading, setLoading] = useState(false)
     const [loadingMore, setLoadingMore] = useState(false)
@@ -18,6 +19,12 @@ export function useLinkTags() {
     }
 
     const fetchPage = useCallback(async (cursor = null, append = false) => {
+        // Proactive expiry check before making the request
+        if (isTokenExpired()) {
+            clearTokens()
+            return
+        }
+
         const token = localStorage.getItem('access_token')
         if (!token) return
 
@@ -28,6 +35,12 @@ export function useLinkTags() {
             const response = await fetch(buildUrl(cursor), {
                 headers: { Authorization: `Bearer ${token}` },
             })
+
+            // 401 = token rejected by server → auto-logout
+            if (response.status === 401) {
+                clearTokens()
+                return
+            }
 
             let data = {}
             const text = await response.text()
@@ -47,7 +60,7 @@ export function useLinkTags() {
 
             setLinktags((prev) => append ? [...prev, ...incoming] : incoming)
             setNextCursor(cursor_next)
-            setTotal(data.data?.total ?? (append ? (prev) => prev + incoming.length : incoming.length))
+            setTotal(data.data?.total ?? incoming.length)
         } catch (err) {
             setError(`Network error: ${err.message}`)
         } finally {

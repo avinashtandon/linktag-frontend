@@ -1,24 +1,30 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import './Navbar.css';
+import { clearTokens, isTokenExpired } from '../utils/auth';
 
 export default function Navbar() {
     const navigate = useNavigate()
     const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('access_token'))
 
-    // Keep in sync when storage changes (e.g. after login/logout in same tab)
+    // Keep in sync: react to logout events AND proactively check token expiry
     useEffect(() => {
-        const sync = () => setIsLoggedIn(!!localStorage.getItem('access_token'))
+        const sync = () => {
+            if (isTokenExpired()) {
+                clearTokens()
+                setIsLoggedIn(false)
+                navigate('/')
+                return
+            }
+            setIsLoggedIn(!!localStorage.getItem('access_token'))
+        }
         window.addEventListener('storage', sync)
-        // Also poll so same-tab login/logout updates the navbar
-        const id = setInterval(sync, 500)
+        const id = setInterval(sync, 5000) // check every 5s
         return () => { window.removeEventListener('storage', sync); clearInterval(id) }
-    }, [])
+    }, [navigate])
 
     const handleLogout = () => {
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
-        localStorage.removeItem('token_expires_at')
+        clearTokens()
         setIsLoggedIn(false)
         navigate('/')
     }
