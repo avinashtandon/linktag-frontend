@@ -6,11 +6,28 @@ import '../pages/MyLinktags.css';
 const API_BASE = '/api/v1'
 
 export default function HomePage() {
-    const isLoggedIn = !!localStorage.getItem('access_token')
+    const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('access_token'))
     const [linktags, setLinktags] = useState([])
     const [total, setTotal] = useState(0)
-    const [loading, setLoading] = useState(isLoggedIn)
+    const [loading, setLoading] = useState(!!localStorage.getItem('access_token'))
     const [error, setError] = useState('')
+
+    // React to login/logout without page refresh
+    useEffect(() => {
+        const sync = () => {
+            const loggedIn = !!localStorage.getItem('access_token')
+            setIsLoggedIn(loggedIn)
+            if (!loggedIn) {
+                setLinktags([])
+                setTotal(0)
+                setLoading(false)
+                setError('')
+            }
+        }
+        window.addEventListener('storage', sync)
+        const id = setInterval(sync, 500)
+        return () => { window.removeEventListener('storage', sync); clearInterval(id) }
+    }, [])
 
     useEffect(() => {
         if (!isLoggedIn) return
